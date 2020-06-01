@@ -1,0 +1,15 @@
+
+[1mFrom:[0m /home/kojdm/projects/spoopi/sinatra/server.rb:9 self.GET /:
+
+     [1;34m4[0m: [1;34;4mCLIENT_ID[0m = [31m[1;31m'[0m[31md10f8a226d0d4acfb2ab26e2087c0daa[1;31m'[0m[31m[0m
+     [1;34m5[0m: [1;34;4mCLIENT_SECRET[0m = [31m[1;31m'[0m[31maea3202103e74e1db3fc6745f75f9be1[1;31m'[0m[31m[0m
+     [1;34m6[0m: [1;34;4mREDIRECT_URI[0m = [31m[1;31m'[0m[31mhttp://localhost:4567/callback[1;31m'[0m[31m[0m
+     [1;34m7[0m: 
+     [1;34m8[0m: get [31m[1;31m"[0m[31m/[1;31m"[0m[31m[0m [32mdo[0m
+ =>  [1;34m9[0m:   binding.pry
+    [1;34m10[0m:   erb [33m:index[0m, [33m:hi[0m => meh
+    [1;34m11[0m: [32mend[0m
+    [1;34m12[0m: 
+    [1;34m13[0m: get [31m[1;31m"[0m[31m/login[1;31m"[0m[31m[0m [32mdo[0m
+    [1;34m14[0m: 
+

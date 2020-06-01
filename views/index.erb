@@ -1,0 +1,24 @@
+<h1>This is Spoopi</h1>
+<a href="/login">Log in with Spotify</a>
+
+<h2>Welcome <%= current_user["display_name"] if current_user %></h2>
+<% unless categories.empty? %>
+  <h2>Categories</h2>
+  <table>
+    <tr>
+      <th>No.</th>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Icon</th>
+    </tr>
+  <% categories.each_with_index do |cat, i| %>
+    <tr>
+      <td><%= i + 1 %></td>
+      <td><%= cat.id %></td>
+      <td><%= cat.name %></td>
+      <td><img src="<%= cat.image_url %>" height="100"></td>
+    </tr>
+  <% end %>
+  </table>
+<% end %>
+

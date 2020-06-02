@@ -46,6 +46,7 @@ class Playlist < ApiObject
         tr["track"]["id"],
         tr["track"]["name"],
         tr["track"]["album"]["images"].first["url"],
+        tr["track"]["duration_ms"],
         api
       )
     }
@@ -53,12 +54,13 @@ class Playlist < ApiObject
 end
 
 class Track < ApiObject
-  attr_reader :id, :name, :image_url
+  attr_reader :id, :name, :image_url, :duration
 
-  def initialize(id, name, image_url, api)
+  def initialize(id, name, image_url, duration, api)
     @id = id
     @name = name
     @image_url = image_url
+    @duration = duration / 1000 # ms to seconds
     super(api)
   end
 end

@@ -4,6 +4,20 @@ class ApiObject
   def initialize(args)
     args.each { |k,v| send("#{k}=", v) }
   end
+
+  def init_categories!(country)
+    limit = 50 # 1-50
+    res = api.get("/browse/categories?country=#{country}&limit=#{limit}")
+
+    res["categories"]["items"].each_with_object([]) { |cat, arr|
+      arr << Category.new(
+        id: cat["id"],
+        name: cat["name"],
+        image_url: cat["icons"].first["url"],
+        api: api
+      )
+    }
+  end
 end
 
 class Category < ApiObject

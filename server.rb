@@ -93,17 +93,6 @@ end
 def init_categories!
   return unless session_active?
 
-  limit = 50 # 1-50
-  res = @api.get("/browse/categories?country=#{@current_user["country"]}&limit=#{limit}")
-
-  @categories = []
-  res["categories"]["items"].each { |cat|
-    @categories << Category.new(
-      id: cat["id"],
-      name: cat["name"],
-      image_url: cat["icons"].first["url"],
-      api: @api
-    )
-  }
+  @categories = ApiObject.new(api: @api).init_categories!(@current_user["country"])
 end
 

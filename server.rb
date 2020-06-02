@@ -1,10 +1,11 @@
-require 'dotenv/load'
+require "dotenv/load"
+require_relative "classes/spotify_api"
 
 CLIENT_ID = ENV["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = ENV["SPOTIFY_CLIENT_SECRET"]
 REDIRECT_URI = ENV["SPOTIFY_REDIRECT_URI"]
-AUTH_SCOPE = %w(user-read-private user-read-email)
 
+AUTH_SCOPE = %w(user-read-private user-read-email).freeze
 SPOTIFY_ACCT_URL = "https://accounts.spotify.com".freeze
 SPOTIFY_API_URL = "https://api.spotify.com/v1".freeze
 
@@ -42,18 +43,8 @@ end
 get "/callback" do
   code = params["code"]
   state = params["state"]
-  auth_options = {
-    form: {
-      code: code,
-      redirect_uri: REDIRECT_URI,
-      grant_type: "authorization_code"
-    },
-    headers: {
-      "Authorization": "Basic " + Base64.urlsafe_encode64(CLIENT_ID + ":" + CLIENT_SECRET)
-    }
-  }
 
-  res = HTTParty.post(SPOTIFY_ACCT_URL + "/api/token", body: auth_options[:form], headers: auth_options[:headers])
+  res = SpotifyApi.post_token(code, state)
 
   access_token = res["access_token"]
   refresh_token = res["refresh_token"]
@@ -88,28 +79,6 @@ end
 
 def session_active?
   !session[:user].nil? && !session[:access_token].nil?
-end
-
-class SpotifyApi
-  def initialize(access_token)
-    @access_token = access_token
-  end
-
-  def get(endpoint)
-    HTTParty.get(SPOTIFY_API_URL + endpoint, headers: headers)
-  end
-
-  def post(endpoint)
-    HTTParty.post(SPOTIFY_API_URL + endpoint, headers: headers)
-  end
-
-  private
-
-  def headers
-    {
-      "Authorization": "Bearer " + @access_token
-    }
-  end
 end
 
 def init_session!
@@ -162,7 +131,7 @@ class Category < ApiObject
       Playlist.new(
         pl["id"],
         pl["name"],
-        @api
+        api
       )
     }
   end
@@ -184,7 +153,7 @@ class Playlist < ApiObject
         tr["track"]["id"],
         tr["track"]["name"],
         tr["track"]["album"]["images"].first["url"],
-        @api
+        api
       )
     }
   end

@@ -61,8 +61,9 @@ end
 get "/generate_playlist" do
   return 404 unless session_active?
 
-  time_in_seconds = params["seconds"]
+  duration = params["seconds"]
   category_ids = params["category_ids"]
+
 end
 
 private
@@ -98,10 +99,10 @@ def init_categories!
   @categories = []
   res["categories"]["items"].each { |cat|
     @categories << Category.new(
-      cat["id"],
-      cat["name"],
-      cat["icons"].first["url"],
-      @api
+      id: cat["id"],
+      name: cat["name"],
+      image_url: cat["icons"].first["url"],
+      api: @api
     )
   }
 end

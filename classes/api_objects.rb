@@ -1,19 +1,14 @@
 class ApiObject
-  attr_reader :api
+  attr_accessor :id, :name, :image_url, :duration, :api
 
-  def initialize(api)
-    @api = api
+  def initialize(args)
+    args.each { |k,v| send("#{k}=", v) }
   end
 end
 
 class Category < ApiObject
-  attr_reader :id, :name, :image_url
-
-  def initialize(id, name, image_url, api)
-    @id = id
-    @name = name
-    @image_url = image_url
-    super(api)
+  def initialize(args)
+    super
   end
 
   def playlists
@@ -22,19 +17,17 @@ class Category < ApiObject
 
     res["playlists"]["items"].map { |pl|
       Playlist.new(
-        pl["id"],
-        pl["name"],
-        api
+        id: pl["id"],
+        name: pl["name"],
+        api: api
       )
     }
   end
 end
 
 class Playlist < ApiObject
-  def initialize(id, name, api)
-    @id = id
-    @name = name
-    super(api)
+  def initialize(args)
+    super
   end
 
   def tracks
@@ -43,25 +36,19 @@ class Playlist < ApiObject
 
     res["items"].map { |tr|
       Track.new(
-        tr["track"]["id"],
-        tr["track"]["name"],
-        tr["track"]["album"]["images"].first["url"],
-        tr["track"]["duration_ms"],
-        api
+        id: tr["track"]["id"],
+        name: tr["track"]["name"],
+        image_url: tr["track"]["album"]["images"].first["url"],
+        duration: tr["track"]["duration_ms"] / 1000, # ms to seconds
+        api: api
       )
     }
   end
 end
 
 class Track < ApiObject
-  attr_reader :id, :name, :image_url, :duration
-
-  def initialize(id, name, image_url, duration, api)
-    @id = id
-    @name = name
-    @image_url = image_url
-    @duration = duration / 1000 # ms to seconds
-    super(api)
+  def initialize(args)
+    super
   end
 end
 

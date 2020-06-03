@@ -6,7 +6,7 @@ class ApiObject
   end
 
   def init_categories!(country)
-    limit = 50 # 1-50
+    limit = CATEGORY_LIMIT
     res = api.get("/browse/categories?country=#{country}&limit=#{limit}")
 
     res["categories"]["items"].each_with_object([]) { |cat, arr|
@@ -26,7 +26,7 @@ class Category < ApiObject
   end
 
   def playlists
-    limit = 5 # 1-50
+    limit = PLAYLIST_LIMIT
     res = api.get("/browse/categories/#{id}/playlists?limit=#{limit}")
 
     res["playlists"]["items"].map { |pl|
@@ -45,7 +45,7 @@ class Playlist < ApiObject
   end
 
   def tracks
-    limit = 10 # 1-100
+    limit = TRACK_LIMIT
     res = api.get("/playlists/#{@id}/tracks?limit=#{limit}")
 
     res["items"].map { |tr|

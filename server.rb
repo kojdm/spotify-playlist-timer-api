@@ -7,7 +7,12 @@ CLIENT_ID = ENV["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = ENV["SPOTIFY_CLIENT_SECRET"]
 REDIRECT_URI = ENV["SPOTIFY_REDIRECT_URI"]
 
-AUTH_SCOPE = %w(user-read-private user-read-email).freeze
+AUTH_SCOPE = %w(
+  user-read-private
+  user-read-email
+  playlist-modify-public
+  playlist-modify-private
+).freeze
 SPOTIFY_ACCT_URL = "https://accounts.spotify.com".freeze
 SPOTIFY_API_URL = "https://api.spotify.com/v1".freeze
 
@@ -64,16 +69,47 @@ get "/callback" do
   redirect("/")
 end
 
-get "/gp" do
+get "/generate_tracks" do
   redirect("/") unless session_active?
 
   # desired_duration = params["seconds"]
   # category_ids = params["category_ids"]
-  desired_duration = 1800 # 30 mins
+  desired_duration = 2700 # 45 mins
   category_ids = ["opm", "chill", "jazz"]
 
   spoopi = Spoopi.new(desired_duration, category_ids, @api)
-  spoopi.get_tracks!
+  track_uris = spoopi.tracks.map(&:uri)
+
+  p = {
+    track_uris: track_uris.join(",")
+  }
+
+  redirect("/create_playlist?" + URI.encode_www_form(p))
+end
+
+get "/create_playlist" do
+  redirect("/") unless session_active?
+
+  track_uris = params["track_uris"].split(",")
+  # pl_name = params["pl_name"]
+  pl_name = "another test playlist"
+
+  pl_obj = @api.post(
+    "/users/#{@current_user["id"]}/playlists",
+    body: {
+      name: pl_name,
+      description: "Created with Spoopi - Spotify Playlist Timer",
+      public: false
+    }.to_json
+  )
+
+  new_playlist = Playlist.new(
+    id: pl_obj["id"],
+    name: pl_obj["name"],
+    api: @api
+  )
+
+  new_playlist.add_tracks!(track_uris)
 end
 
 private

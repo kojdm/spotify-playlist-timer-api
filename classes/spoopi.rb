@@ -17,8 +17,8 @@ class Spoopi
     master_hash = @category_ids.each_with_object({}) do |cat_id, h|
       h[cat_id] = {} if h[cat_id].nil?
 
-      cat = Category.new(id: cat_id, api: @api)
-      cat.playlists.flat_map(&:tracks).each do |tr|
+      category = Category.new(id: cat_id, api: @api)
+      category.playlists.flat_map(&:tracks).each do |tr|
         h[cat_id][tr.id] = tr
       end
     end
@@ -34,17 +34,45 @@ class Spoopi
         h[cat_id][tr.duration] = [] if h[cat_id][tr.duration].nil?
         h[cat_id][tr.duration] << tr.id
       end
+
+      total_cat_duration = h[cat_id].keys.sum
+
+      h["totals"] = {} if h["totals"].nil?
+      h["totals"][cat_id] = total_cat_duration
+
+      h["totals"]["grand_total"] = 0 if h["totals"]["grand_total"].nil?
+      h["totals"]["grand_total"] += total_cat_duration
     end
 
-    duration_per_category = (@duration / @category_ids.count).round
+    # duration_per_category = (@duration / @category_ids.count).round
+    duration_per_category = @category_ids.each_with_object({}) do |cat_id, h|
+      total_d = durations_hash["totals"]["grand_total"]
+      total_cat_d = durations_hash["totals"][cat_id]
+      weight = total_cat_d.to_f / total_d
 
+      h[cat_id] = (@duration * weight).round
+    end
+
+    fallback_duration_per_category = (@duration / @category_ids.count).round
+    use_fallback = false
     chosen_track_ids = @category_ids.flat_map do |cat_id|
       durations = durations_hash[cat_id].keys
-      correct_durations = subsetsum(durations.shuffle, duration_per_category)
+      subset = subsetsum(durations.shuffle, duration_per_category[cat_id])
+
+      correct_durations = if subset && !use_fallback
+                            subset
+                          else
+                            use_fallback = true
+                            subsetsum(durations.shuffle, fallback_duration_per_category)
+                          end
 
       #TODO: need to implement a failsafe for when subsetsum returns false
 
-      durations_hash[cat_id].values_at(*correct_durations).map(&:sample)
+      # durations_hash[cat_id].values_at(*correct_durations).map(&:sample)
+      durations_hash[cat_id].values_at(*correct_durations).map do |arr|
+        binding.pry if arr.nil?
+        arr.sample
+      end
     end
 
     master_hash.values.reduce({}, :merge).values_at(*chosen_track_ids)

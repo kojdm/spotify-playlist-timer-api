@@ -26,6 +26,8 @@ class Category < ApiObject
   end
 
   def playlists
+    return @playlists if defined?(@playlists)
+
     limit = PLAYLIST_LIMIT
     offset = rand(0..20)
     res = @api.get("/browse/categories/#{id}/playlists?limit=#{limit}&offset=#{offset}")
@@ -38,7 +40,7 @@ class Category < ApiObject
                   res["playlists"]["items"]
                 end
 
-    playlists.map do |pl|
+    @playlists = playlists.map do |pl|
       Playlist.new(
         id: pl["id"],
         name: pl["name"],
@@ -54,6 +56,8 @@ class Playlist < ApiObject
   end
 
   def tracks
+    return @tracks if defined?(@tracks)
+
     limit = TRACK_LIMIT
     offset = rand(1..50)
     res = @api.get("/playlists/#{@id}/tracks?limit=#{limit}&offset=#{offset}")
@@ -66,8 +70,10 @@ class Playlist < ApiObject
                   res["items"]
                 end
 
-    tracks.map do |tr|
+    @tracks = tracks.filter_map do |tr|
       tr = tr["track"]
+      next if tr.nil? # some tracks would be empty (spotify api problem not mine)
+
       Track.new(
         id: tr["id"],
         name: tr["name"],

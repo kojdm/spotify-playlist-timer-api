@@ -1,24 +1,73 @@
-<h1>This is Spoopi</h1>
-<a href="/login">Log in with Spotify</a>
-
-<h2>Welcome <%= current_user["display_name"] if current_user %></h2>
-<% unless categories.empty? %>
-  <h2>Categories</h2>
-  <table>
-    <tr>
-      <th>No.</th>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Icon</th>
-    </tr>
-  <% categories.each_with_index do |cat, i| %>
-    <tr>
-      <td><%= i + 1 %></td>
-      <td><%= cat.id %></td>
-      <td><%= cat.name %></td>
-      <td><img src="<%= cat.image_url %>" height="100"></td>
-    </tr>
+<html>
+  <body>
+    <h1>This is Spoopi</h1>
+    <% unless current_user %>
+    <a href="/login">Log in with Spotify</a>
+  <% else %>
+    <button id="submit" onclick="submitThing();">Generate Tracks</button>
+    <br>
+    <input type="number" id="seconds" placeholder="Playlist Duration in Minutes">
+    <br>
+    <input type="textbox" id="playlist_name" placeholder="Playlist Name">
   <% end %>
-  </table>
-<% end %>
 
+    <h2>Welcome <%= current_user["display_name"] if current_user %></h2>
+    <% unless categories.empty? %>
+      <h2>Categories</h2>
+      <table>
+        <tr>
+          <th></th>
+          <th>No.</th>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Icon</th>
+        </tr>
+        <% categories.each_with_index do |cat, i| %>
+          <tr>
+            <td>
+              <input type="checkbox" class="check" id="<%= cat.id %>">
+            </td>
+            <td><%= i + 1 %></td>
+            <td><%= cat.id %></td>
+            <td><%= cat.name %></td>
+            <td><img src="<%= cat.image_url %>" height="100"></td>
+          </tr>
+        <% end %>
+      </table>
+    <% end %>
+
+    <script type="text/javascript">
+      var checks = document.querySelectorAll(".check");
+var max = 5;
+for (var i = 0; i < checks.length; i++){
+  checks[i].onclick = selectiveCheck;
+}
+function selectiveCheck (event) {
+  var checkedChecks = document.querySelectorAll(".check:checked");
+  if (checkedChecks.length >= max + 1)
+    return false;
+}
+function submitThing () {
+  var seconds = document.getElementById("seconds").value;
+  var pl_name = document.getElementById("playlist_name").value;
+  var checkedChecks = document.querySelectorAll(".check:checked");
+  var arr = Array.prototype.map.call( checkedChecks, function( el, i ) {
+    return el.id;
+  });
+
+  if (seconds == "" || pl_name == "" || arr.length <= 0) {
+    return;
+  }
+
+  var q = {
+    category_ids: arr,
+    seconds: parseInt(seconds) * 60,
+    playlist_name: pl_name
+  };
+  url = new URLSearchParams(q).toString();
+
+  window.location = window.location.origin + "/generate_tracks?" + url;
+}
+    </script>
+  </body>
+</html>

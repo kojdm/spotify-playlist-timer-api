@@ -19,8 +19,8 @@ SPOTIFY_API_URL = "https://api.spotify.com/v1".freeze
 # num of objects returned by spotify api
 # tracks per category = PLAYLIST_LIMIT * TRACK_LIMIT
 CATEGORY_LIMIT = 50.freeze # 1-50
-PLAYLIST_LIMIT = 5.freeze # 1-50
-TRACK_LIMIT = 20.freeze # 1-100
+PLAYLIST_LIMIT = 50.freeze # 1-50
+TRACK_LIMIT = 100.freeze # 1-100
 
 enable :sessions
 
@@ -34,7 +34,8 @@ get "/" do
 
   erb :index, locals: {
     current_user: @current_user,
-    categories: @categories || []
+    categories: @categories || [],
+    base_url: request.base_url
   }
 end
 
@@ -73,28 +74,33 @@ end
 get "/generate_tracks" do
   redirect("/") unless session_active?
 
-  # desired_duration = params["seconds"]
-  # category_ids = params["category_ids"]
-  desired_duration = 2700 # 45 mins
-  category_ids = ["opm", "chill", "jazz"]
+  desired_duration = params["seconds"].to_i
+  category_ids = params["category_ids"].split(",")
 
   spoopi = Spoopi.new(desired_duration, category_ids, @api)
   track_uris = spoopi.tracks.map(&:uri)
 
   p = {
-    track_uris: track_uris.join(",")
+    :track_uris => track_uris.join(","),
+    :pl_name => params["playlist_name"]
   }
 
   redirect("/create_playlist?" + URI.encode_www_form(p))
+  # HTTParty.post(
+  #   request.base_url + "/create_playlist",
+  #   body: p
+  # )
 end
 
-get "/create_playlist" do
+post "/create_playlist" do
+  binding.pry
   redirect("/") unless session_active?
 
+  binding.pry
   track_uris = params["track_uris"].split(",")
-  # pl_name = params["pl_name"]
-  pl_name = "another test playlist"
+  pl_name = params["pl_name"]
 
+  binding.pry
   pl_obj = @api.post(
     "/users/#{@current_user["id"]}/playlists",
     body: {
@@ -103,6 +109,7 @@ get "/create_playlist" do
       public: false
     }.to_json
   )
+  binding.pry
 
   new_playlist = Playlist.new(
     id: pl_obj["id"],
@@ -110,7 +117,9 @@ get "/create_playlist" do
     api: @api
   )
 
+  binding.pry
   new_playlist.add_tracks!(track_uris)
+  redirect("/")
 end
 
 private

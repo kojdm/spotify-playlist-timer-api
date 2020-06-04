@@ -7,8 +7,8 @@ class SpotifyApi
     HTTParty.get(SPOTIFY_API_URL + endpoint, headers: headers)
   end
 
-  def post(endpoint)
-    HTTParty.post(SPOTIFY_API_URL + endpoint, headers: headers)
+  def post(endpoint, body:)
+    HTTParty.post(SPOTIFY_API_URL + endpoint, body: body, headers: headers)
   end
 
   def self.post_token(code, _state)

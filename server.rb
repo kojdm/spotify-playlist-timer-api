@@ -17,9 +17,10 @@ SPOTIFY_ACCT_URL = "https://accounts.spotify.com".freeze
 SPOTIFY_API_URL = "https://api.spotify.com/v1".freeze
 
 # num of objects returned by spotify api
+# tracks per category = PLAYLIST_LIMIT * TRACK_LIMIT
 CATEGORY_LIMIT = 50.freeze # 1-50
 PLAYLIST_LIMIT = 5.freeze # 1-50
-TRACK_LIMIT = 10.freeze # 1-100
+TRACK_LIMIT = 20.freeze # 1-100
 
 enable :sessions
 

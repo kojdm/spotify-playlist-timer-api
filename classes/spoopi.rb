@@ -1,12 +1,15 @@
 class Spoopi
-  attr_accessor :tracks
-
   def initialize(duration, category_ids, api)
     @duration = duration
     @category_ids = category_ids
     @api = api
-    @tracks = []
   end
+
+  def tracks
+    @tracks ||= get_tracks!
+  end
+
+  private
 
   def get_tracks!
     # master_hash contains all tracks for each @category_id. hash pattern is:
@@ -39,15 +42,13 @@ class Spoopi
       durations = durations_hash[cat_id].keys
       correct_durations = subsetsum(durations.shuffle, duration_per_category)
 
-      # need to implement a failsafe for when subsetsum returns false
+      #TODO: need to implement a failsafe for when subsetsum returns false
 
       durations_hash[cat_id].values_at(*correct_durations).map(&:sample)
     end
 
-    @tracks = master_hash.values.reduce({}, :merge).values_at(*chosen_track_ids)
+    master_hash.values.reduce({}, :merge).values_at(*chosen_track_ids)
   end
-
-  private
 
   # subset sum solution. takes an array and a sum, finds subset of array
   # whose elements add up to sum. adapted from:

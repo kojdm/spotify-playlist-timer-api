@@ -1,5 +1,5 @@
 class ApiObject
-  attr_accessor :id, :name, :image_url, :duration, :api
+  attr_accessor :id, :name, :image_url, :duration, :uri, :api
 
   def initialize(args)
     args.each { |k,v| send("#{k}=", v) }
@@ -49,14 +49,23 @@ class Playlist < ApiObject
     res = api.get("/playlists/#{@id}/tracks?limit=#{limit}")
 
     res["items"].map { |tr|
+      tr = tr["track"]
       Track.new(
-        id: tr["track"]["id"],
-        name: tr["track"]["name"],
-        image_url: tr["track"]["album"]["images"].first["url"],
-        duration: tr["track"]["duration_ms"] / 1000, # ms to seconds
+        id: tr["id"],
+        name: tr["name"],
+        image_url: tr["album"]["images"].first["url"],
+        duration: tr["duration_ms"] / 1000, # ms to seconds
+        uri: tr["uri"],
         api: api
       )
     }
+  end
+
+  def add_tracks!(track_uris)
+    body = {
+      uris: track_uris
+    }
+    api.post("/playlists/#{@id}/tracks", body: body.to_json)
   end
 end
 

@@ -19,8 +19,12 @@ SPOTIFY_API_URL = "https://api.spotify.com/v1".freeze
 # num of objects returned by spotify api
 # tracks per category = PLAYLIST_LIMIT * TRACK_LIMIT
 CATEGORY_LIMIT = 50.freeze # 1-50
-PLAYLIST_LIMIT = 50.freeze # 1-50
+PLAYLIST_LIMIT = 25.freeze # 1-50
 TRACK_LIMIT = 100.freeze # 1-100
+
+MIN_DURATION = 900.freeze # 15 mins
+MAX_DURATION = 43200.freeze # 12 hours
+MAX_CATEGORIES = 5.freeze
 
 enable :sessions
 
@@ -77,49 +81,60 @@ get "/generate_tracks" do
   desired_duration = params["seconds"].to_i
   category_ids = params["category_ids"].split(",")
 
+  redirect("/") unless desired_duration.between?(MIN_DURATION, MAX_DURATION) ||
+    category_ids.count.between?(1, MAX_CATEGORIES)
+
   spoopi = Spoopi.new(desired_duration, category_ids, @api)
   track_uris = spoopi.tracks.map(&:uri)
 
   p = {
     :track_uris => track_uris.join(","),
-    :pl_name => params["playlist_name"]
+    :pl_name => params["playlist_name"],
+    :category_ids => category_ids,
+    :access_token => session[:access_token],
+    :current_user_id => @current_user["id"]
   }
 
-  redirect("/create_playlist?" + URI.encode_www_form(p))
-  # HTTParty.post(
-  #   request.base_url + "/create_playlist",
-  #   body: p
-  # )
+  # redirect("/create_playlist?" + URI.encode_www_form(p))
+  HTTParty.post(
+    request.base_url + "/create_playlist",
+    body: p
+  )
 end
 
 post "/create_playlist" do
-  binding.pry
-  redirect("/") unless session_active?
+  # redirect("/") unless session_active?
 
-  binding.pry
   track_uris = params["track_uris"].split(",")
   pl_name = params["pl_name"]
+  category_ids = params["category_ids"]
 
-  binding.pry
+  @api = SpotifyApi.new(params["access_token"])
+  current_user_id = params["current_user_id"]
+
   pl_obj = @api.post(
-    "/users/#{@current_user["id"]}/playlists",
+    # "/users/#{@current_user["id"]}/playlists",
+    "/users/#{current_user_id}/playlists",
     body: {
       name: pl_name,
-      description: "Created with Spoopi - Spotify Playlist Timer",
+      description: "Created with Spoopi - Spotify Playlist Timer. [cats: #{category_ids.join(", ")}]",
       public: false
     }.to_json
   )
-  binding.pry
 
   new_playlist = Playlist.new(
     id: pl_obj["id"],
     name: pl_obj["name"],
+    spotify_url: pl_obj["external_urls"]["spotify"],
     api: @api
   )
 
-  binding.pry
-  new_playlist.add_tracks!(track_uris)
-  redirect("/")
+  split_track_uris = track_uris.each_slice(100).to_a
+  split_track_uris.each { |track_uris| new_playlist.add_tracks!(track_uris) }
+
+  body(json({playlist_url: new_playlist.spotify_url}))
+  status 200
+  # return "Playlist created! Start listening here: #{new_playlist.spotify_url}"
 end
 
 private

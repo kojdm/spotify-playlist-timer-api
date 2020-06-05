@@ -1,12 +1,11 @@
 class Spoopi
+  attr_reader :tracks
+
   def initialize(duration, category_ids, api)
     @duration = duration
     @category_ids = category_ids
     @api = api
-  end
-
-  def tracks
-    @tracks ||= get_tracks!
+    @tracks = get_tracks!
   end
 
   private
@@ -25,7 +24,15 @@ class Spoopi
 
     # durations_hash contains all track_ids and track_durations sorted by category_id
     # for this request. track_ids are accessible by track_duration. hash pattern is:
-    # { category_id => { track_duration => [ track_id1, track_id2, ... ] } }
+    # {
+    #   category_id => {
+    #     track_duration => [ track_id1, track_id2, ... ]
+    #   },
+    #   totals => {
+    #     category_id => total_duration
+    #     grand_total => grand_total_duration
+    #   }
+    # }
     durations_hash = @category_ids.each_with_object({}) do |cat_id, h|
       h[cat_id] = {} if h[cat_id].nil?
 
@@ -44,7 +51,6 @@ class Spoopi
       h["totals"]["grand_total"] += total_cat_duration
     end
 
-    # duration_per_category = (@duration / @category_ids.count).round
     duration_per_category = @category_ids.each_with_object({}) do |cat_id, h|
       total_d = durations_hash["totals"]["grand_total"]
       total_cat_d = durations_hash["totals"][cat_id]
@@ -59,19 +65,24 @@ class Spoopi
       durations = durations_hash[cat_id].keys
       subset = subsetsum(durations.shuffle, duration_per_category[cat_id])
 
-      correct_durations = if subset && !use_fallback
-                            subset
-                          else
-                            use_fallback = true
-                            subsetsum(durations.shuffle, fallback_duration_per_category)
-                          end
+      if subset
+        correct_durations = subset
+      else
+        use_fallback = true
+        break
+      end
 
-      #TODO: need to implement a failsafe for when subsetsum returns false
+      durations_hash[cat_id].values_at(*correct_durations).map(&:sample)
+    end
 
-      # durations_hash[cat_id].values_at(*correct_durations).map(&:sample)
-      durations_hash[cat_id].values_at(*correct_durations).map do |arr|
-        binding.pry if arr.nil?
-        arr.sample
+    if use_fallback
+      chosen_track_ids = @category_ids.flat_map do |cat_id|
+        durations = durations_hash[cat_id].keys
+        correct_durations = subsetsum(durations.shuffle, fallback_duration_per_category)
+
+        #TODO: need to implement a failsafe for when subsetsum returns false
+
+        durations_hash[cat_id].values_at(*correct_durations).map(&:sample)
       end
     end
 

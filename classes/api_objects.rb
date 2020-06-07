@@ -1,8 +1,8 @@
 class ApiObject
-  attr_accessor :id, :name, :image_url, :duration, :uri, :spotify_url, :api
+  attr_accessor :id, :name, :artists, :image_url, :duration, :uri, :spotify_url, :api
 
   def initialize(args)
-    args.each { |k,v| send("#{k}=", v) }
+    args.each { |k, v| send("#{k}=", v) }
   end
 
   def init_categories!(country)
@@ -16,6 +16,12 @@ class ApiObject
         image_url: cat["icons"].first["url"],
         api: @api
       )
+    end
+  end
+
+  def json_friendly
+    instance_variables.reject { |v| v == :@api }.each_with_object({}) do |ivar, h|
+      h[ivar[1..-1]] = instance_variable_get(ivar)
     end
   end
 end
@@ -74,9 +80,12 @@ class Playlist < ApiObject
       tr = tr["track"]
       next if tr.nil? # some tracks would be empty (spotify api problem not mine)
 
+      # TODO: add artist/s to tracks
+
       Track.new(
         id: tr["id"],
         name: tr["name"],
+        artists: tr.dig("album", "artists")&.map { |a| a&.dig("name")},
         image_url: tr.dig("album", "images")&.first&.dig("url"),
         duration: tr["duration_ms"] / 1000, # ms to seconds
         uri: tr["uri"],

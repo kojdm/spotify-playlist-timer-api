@@ -11,12 +11,8 @@ class SpotifyApi
     HTTParty.post(SPOTIFY_API_URL + endpoint, body: body, headers: headers)
   end
 
-  def self.post_token(code, _state)
-    body = {
-      code: code,
-      redirect_uri: REDIRECT_URI,
-      grant_type: "authorization_code"
-    }
+  def self.get_spoopi_token(grant_type:)
+    body = { grant_type: grant_type }
     token_headers = {
       "Authorization": "Basic " + Base64.urlsafe_encode64(CLIENT_ID + ":" + CLIENT_SECRET)
     }

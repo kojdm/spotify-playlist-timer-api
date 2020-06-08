@@ -29,82 +29,58 @@ MAX_CATEGORIES = 5.freeze
 before do
   headers("Access-Control-Allow-Origin" => SPOTIFY_ACCT_URL)
   headers("Access-Control-Allow-Origin" => SPOTIFY_API_URL)
-  # init_session!
+  init_spoopi_token!
 end
 
-# get "/" do
-#   init_categories! if session_active?
-
-#   erb :index, locals: {
-#     current_user: @current_user,
-#     categories: @categories || [],
-#     base_url: request.base_url
-#   }
-# end
-
-get "/login" do
-  state = random_string(16)
+get "/authenticate_user" do
   scope = AUTH_SCOPE.join(" ")
   query = {
-    response_type: "code",
+    response_type: "token",
     client_id: CLIENT_ID,
     scope: scope,
     redirect_uri: REDIRECT_URI,
-    state: state
   }
   querystring = URI.encode_www_form(query)
 
   redirect(SPOTIFY_ACCT_URL + "/authorize?" + querystring)
 end
 
-get "/callback" do
-  begone! unless (params.keys - ["code", "state"]).empty?
-
-  code = params["code"]
-  state = params["state"]
-
-  res = SpotifyApi.post_token(code, state)
-
-  access_token = res["access_token"]
-  _refresh_token = res["refresh_token"]
-
-  api = SpotifyApi.new(access_token)
-  user = api.get("/me").to_h
-  categories = ApiObject.new(api: api).init_categories!(user["country"])
+get "/categories" do
+  api = SpotifyApi.new(@spoopi_token)
+  categories = ApiObject.new(api: api).init_categories!
 
   {
-    user: user,
-    categories: categories.map(&:json_friendly),
-    access_token: access_token,
+    categories: categories.map(&:json_friendly)
   }.to_json
 end
 
 get "/generate_tracks" do
-  access_token = request.env["HTTP_AUTHORIZATION"]
-  begone! unless (params.keys - ["seconds", "category_ids"]).empty? || access_token.nil?
+  begone! unless (params.keys - ["seconds", "category_ids"]).empty? && !params.empty?
 
-  access_token = access_token.split(" ").last
   desired_duration = params["seconds"].to_i
   category_ids = params["category_ids"].split(",")
 
   begone! unless desired_duration.between?(MIN_DURATION, MAX_DURATION) ||
     category_ids.count.between?(1, MAX_CATEGORIES)
 
-  api = SpotifyApi.new(access_token)
+  api = SpotifyApi.new(@spoopi_token)
   spoopi = Spoopi.new(desired_duration, category_ids, api)
   tracks = spoopi.tracks
 
   {
-    tracks: tracks.map(&:json_friendly),
-    track_uris: tracks.map(&:uri).join(",")
+    "spoopi": {
+      tracks: tracks.map(&:json_friendly),
+      track_uris: tracks.map(&:uri).join(","),
+      duration: desired_duration,
+      category_ids: category_ids.join(",")
+    }
   }.to_json
 end
 
 post "/create_playlist" do
-  access_token = request.env["HTTP_AUTHORIZATION"]
-  begone! unless (params.keys - ["user_id", "track_uris", "pl_name", "category_ids"]).empty? || access_token.nil?
+  begone! unless (params.keys - ["access_token", "user_id", "track_uris", "pl_name", "category_ids"]).empty? && !params.empty?
 
-  access_token = access_token.split(" ").last
+  access_token = params["access_token"]
   user_id = params["user_id"]
   track_uris = params["track_uris"].split(",")
   pl_name = params["pl_name"]
@@ -153,21 +129,8 @@ def begone!
   return halt 400, "begone!"
 end
 
-# def session_active?
-#   !session[:user].nil? && !session[:access_token].nil?
-# end
-
-# def init_session!
-#   return unless session_active?
-
-#   @current_user = session[:user]
-#   @api = SpotifyApi.new(session[:access_token])
-# end
-
-# def init_categories!
-#   return unless session_active?
-
-#   @categories = ApiObject.new(api: @api).init_categories!(@current_user["country"])
-# end
-
+def init_spoopi_token!
+  res = SpotifyApi.get_spoopi_token(grant_type: "client_credentials")
+  @spoopi_token = res["access_token"]
+end
 

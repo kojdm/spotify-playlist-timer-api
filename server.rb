@@ -6,6 +6,7 @@ require_relative "classes/spoopi"
 CLIENT_ID = ENV["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = ENV["SPOTIFY_CLIENT_SECRET"]
 REDIRECT_URI = ENV["SPOTIFY_REDIRECT_URI"]
+SPOOPI_URL = ENV["SPOOPI_URL"]
 
 AUTH_SCOPE = %w(
   user-read-private
@@ -27,8 +28,7 @@ MAX_DURATION = 43200.freeze # 12 hours
 MAX_CATEGORIES = 5.freeze
 
 before do
-  headers("Access-Control-Allow-Origin" => SPOTIFY_ACCT_URL)
-  headers("Access-Control-Allow-Origin" => SPOTIFY_API_URL)
+  headers("Access-Control-Allow-Origin" => SPOOPI_URL)
   init_spoopi_token!
 end
 
@@ -46,8 +46,9 @@ get "/authenticate_user" do
 end
 
 get "/categories" do
+  country_code = params["country_code"]
   api = SpotifyApi.new(@spoopi_token)
-  categories = ApiObject.new(api: api).init_categories!
+  categories = ApiObject.new(api: api).init_categories!(country_code)
 
   {
     categories: categories.map(&:json_friendly)

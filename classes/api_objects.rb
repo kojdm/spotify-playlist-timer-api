@@ -5,9 +5,13 @@ class ApiObject
     args.each { |k, v| send("#{k}=", v) }
   end
 
-  def init_categories!
-    limit = CATEGORY_LIMIT
-    res = @api.get("/browse/categories?limit=#{limit}")
+  def init_categories!(country_code)
+    query = {
+      limit: CATEGORY_LIMIT
+    }
+    query[:country] = country_code if country_code
+    querystring = URI.encode_www_form(query)
+    res = @api.get("/browse/categories?" + querystring)
 
     res["categories"]["items"].each_with_object([]) do |cat, arr|
       arr << Category.new(

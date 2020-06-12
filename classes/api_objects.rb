@@ -84,8 +84,6 @@ class Playlist < ApiObject
       tr = tr["track"]
       next if tr.nil? # some tracks would be empty (spotify api problem not mine)
 
-      # TODO: add artist/s to tracks
-
       Track.new(
         id: tr["id"],
         name: tr["name"],

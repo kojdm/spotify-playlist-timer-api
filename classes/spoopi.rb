@@ -1,16 +1,21 @@
 class Spoopi
-  attr_reader :tracks
-
   def initialize(duration, category_ids, api)
     @duration = duration
     @category_ids = category_ids
     @api = api
-    @tracks = get_tracks!
+  end
+
+  def tracks
+    @tracks ||= begin
+                  generate_tracks!
+                rescue StandardError
+                  []
+                end
   end
 
   private
 
-  def get_tracks!
+  def generate_tracks!
     # master_hash contains all tracks for each @category_id. hash pattern is:
     # { category_id => { track_id1 => Track1, track_id2 => Track2, ... } }
     master_hash = @category_ids.each_with_object({}) do |cat_id, h|

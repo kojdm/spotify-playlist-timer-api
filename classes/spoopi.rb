@@ -40,9 +40,12 @@ class Spoopi
       tracks.each do |tr|
         h[cat_id][tr.duration] = [] if h[cat_id][tr.duration].nil?
         h[cat_id][tr.duration] << tr.id
+
+        h[cat_id]["all_durations"] = [] if h[cat_id]["all_durations"].nil?
+        h[cat_id]["all_durations"] << tr.duration
       end
 
-      total_cat_duration = h[cat_id].keys.sum
+      total_cat_duration = h[cat_id]["all_durations"].sum
 
       h["totals"] = {} if h["totals"].nil?
       h["totals"][cat_id] = total_cat_duration
@@ -62,7 +65,7 @@ class Spoopi
     fallback_duration_per_category = (@duration / @category_ids.count).round
     use_fallback = false
     chosen_track_ids = @category_ids.flat_map do |cat_id|
-      durations = durations_hash[cat_id].keys
+      durations = durations_hash[cat_id]["all_durations"]
       subset = subsetsum(durations.shuffle, duration_per_category[cat_id])
 
       if subset
@@ -72,17 +75,21 @@ class Spoopi
         break
       end
 
-      durations_hash[cat_id].values_at(*correct_durations).map(&:sample)
+      correct_durations.tally.flat_map do |dur, occurrences|
+        durations_hash[cat_id][dur].sample(occurrences)
+      end
     end
 
     if use_fallback
       chosen_track_ids = @category_ids.flat_map do |cat_id|
-        durations = durations_hash[cat_id].keys
+        durations = durations_hash[cat_id]["all_durations"]
         correct_durations = subsetsum(durations.shuffle, fallback_duration_per_category)
 
         #TODO: need to implement a failsafe for when subsetsum returns false
 
-        durations_hash[cat_id].values_at(*correct_durations).map(&:sample)
+        correct_durations.tally.flat_map do |dur, occurrences|
+          durations_hash[cat_id][dur].sample(occurrences)
+        end
       end
     end
 

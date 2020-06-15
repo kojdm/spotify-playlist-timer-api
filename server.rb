@@ -56,16 +56,17 @@ get "/categories" do
 end
 
 get "/generate_tracks" do
-  begone! unless (params.keys - ["seconds", "category_ids"]).empty? && !params.empty?
+  begone! unless (params.keys - ["seconds", "category_ids", "country_code"]).empty? && !params.empty?
 
   desired_duration = params["seconds"].to_i
   category_ids = params["category_ids"].split(",")
+  country_code = params["country_code"]
 
   begone! unless desired_duration.between?(MIN_DURATION, MAX_DURATION) ||
     category_ids.count.between?(1, MAX_CATEGORIES)
 
   api = SpotifyApi.new(@spoopi_token)
-  spoopi = Spoopi.new(desired_duration, category_ids, api)
+  spoopi = Spoopi.new(desired_duration, category_ids, country_code, api)
   tracks = spoopi.tracks
 
   {

@@ -5,7 +5,7 @@ class ApiObject
     args.each { |k, v| send("#{k}=", v) }
   end
 
-  def init_categories!(country_code)
+  def init_categories!(country_code = nil)
     query = {
       limit: CATEGORY_LIMIT
     }
@@ -35,12 +35,16 @@ class Category < ApiObject
     super
   end
 
-  def playlists
+  def playlists(country_code = nil)
     return @playlists if defined?(@playlists)
 
-    limit = PLAYLIST_LIMIT
-    offset = rand(0..20)
-    res = @api.get("/browse/categories/#{id}/playlists?limit=#{limit}&offset=#{offset}")
+    query = {
+      limit: PLAYLIST_LIMIT,
+      offset: rand(0..20),
+    }
+    query[:country] = country_code if country_code
+    querystring = URI.encode_www_form(query)
+    res = @api.get("/browse/categories/#{id}/playlists?" + querystring)
 
     playlists = if res["playlists"]["items"].empty?
                   new_offset = res["playlists"]["total"] > limit ? rand(0..res["playlists"]["total"] - limit) : 0

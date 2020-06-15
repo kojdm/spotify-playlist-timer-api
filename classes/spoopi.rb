@@ -1,7 +1,8 @@
 class Spoopi
-  def initialize(duration, category_ids, api)
+  def initialize(duration, category_ids, country_code, api)
     @duration = duration
     @category_ids = category_ids
+    @country_code = country_code
     @api = api
   end
 
@@ -22,7 +23,7 @@ class Spoopi
       h[cat_id] = {} if h[cat_id].nil?
 
       category = Category.new(id: cat_id, api: @api)
-      category.playlists.flat_map(&:tracks).each do |tr|
+      category.playlists(@country_code).flat_map(&:tracks).each do |tr|
         h[cat_id][tr.id] = tr
       end
     end

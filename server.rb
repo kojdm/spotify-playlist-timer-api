@@ -38,7 +38,7 @@ get "/authenticate_user" do
     response_type: "token",
     client_id: CLIENT_ID,
     scope: scope,
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: SPOOPI_URL,
   }
   querystring = URI.encode_www_form(query)
 
@@ -80,15 +80,16 @@ get "/generate_tracks" do
 end
 
 post "/create_playlist" do
-  begone! unless (params.keys - ["access_token", "user_id", "track_uris", "pl_name", "category_ids"]).empty? && !params.empty?
+  params = JSON.parse(request.body.read)
+  begone! unless (params.keys - ["access_token", "track_uris", "pl_name", "category_ids"]).empty? && !params.empty?
 
   access_token = params["access_token"]
-  user_id = params["user_id"]
   track_uris = params["track_uris"].split(",")
   pl_name = params["pl_name"]
-  category_ids = params["category_ids"]
+  category_ids = params["category_ids"].split(",")
 
   api = SpotifyApi.new(access_token)
+  user_id = api.get("/me")["id"]
 
   pl_obj = api.post(
     "/users/#{user_id}/playlists",

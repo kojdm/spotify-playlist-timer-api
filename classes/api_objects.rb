@@ -9,7 +9,7 @@ class ApiObject
     query = {
       limit: CATEGORY_LIMIT
     }
-    query[:country] = country_code if country_code
+    query[:country] = country_code unless country_code.nil? || country_code.empty?
     querystring = URI.encode_www_form(query)
     res = @api.get("/browse/categories?" + querystring)
 
@@ -42,7 +42,7 @@ class Category < ApiObject
       limit: PLAYLIST_LIMIT,
       offset: rand(0..20),
     }
-    query[:country] = country_code if country_code
+    query[:country] = country_code unless country_code.nil? || country_code.empty?
     querystring = URI.encode_www_form(query)
     res = @api.get("/browse/categories/#{id}/playlists?" + querystring)
 

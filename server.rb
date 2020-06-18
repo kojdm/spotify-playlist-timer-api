@@ -32,6 +32,10 @@ before do
   init_spoopi_token!
 end
 
+get "/" do
+  redirect(SPOOPI_URL)
+end
+
 get "/authenticate_user" do
   scope = AUTH_SCOPE.join(" ")
   query = {

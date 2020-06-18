@@ -6,7 +6,6 @@ require_relative "classes/spoopi"
 CLIENT_ID = ENV["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = ENV["SPOTIFY_CLIENT_SECRET"]
 SPOOPI_URL = ENV["SPOOPI_URL"]
-CORS_URL = ENV["CORS_URL"]
 
 AUTH_SCOPE = %w(
   user-read-private
@@ -28,7 +27,7 @@ MAX_DURATION = 43200.freeze # 12 hours
 MAX_CATEGORIES = 5.freeze
 
 before do
-  headers("Access-Control-Allow-Origin" => CORS_URL)
+  headers("Access-Control-Allow-Origin" => "*")
   init_spoopi_token!
 end
 

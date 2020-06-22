@@ -27,6 +27,8 @@ MIN_DURATION = 900.freeze # 15 mins
 MAX_DURATION = 43200.freeze # 12 hours
 MAX_CATEGORIES = 5.freeze
 
+set :server, :thin
+
 before do
   headers("Access-Control-Allow-Origin" => CORS_URL)
   init_spoopi_token!

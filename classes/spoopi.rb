@@ -9,7 +9,9 @@ class Spoopi
   def tracks
     @tracks ||= begin
                   generate_tracks!
-                rescue StandardError
+                rescue StandardError => e
+                  puts e.message
+                  puts e.backtrace
                   []
                 end
   end

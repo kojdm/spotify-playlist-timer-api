@@ -38,8 +38,9 @@ class Category < ApiObject
   def playlists(country_code = nil)
     return @playlists if defined?(@playlists)
 
+    limit = PLAYLIST_LIMIT
     query = {
-      limit: PLAYLIST_LIMIT,
+      limit: limit,
       offset: rand(0..20),
     }
     query[:country] = country_code unless country_code.nil? || country_code.empty?

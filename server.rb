@@ -129,6 +129,10 @@ post "/create_playlist" do
   }.to_json
 end
 
+get "/spoopi_stats" do
+  SpoopiTracker.get_stats.to_json
+end
+
 private
 
 def random_string(length)

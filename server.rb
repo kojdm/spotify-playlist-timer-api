@@ -24,7 +24,7 @@ PLAYLIST_LIMIT = 20.freeze # 1-50
 TRACK_LIMIT = 100.freeze # 1-100
 
 MIN_DURATION = 900.freeze # 15 mins
-MAX_DURATION = 43200.freeze # 12 hours
+MAX_DURATION = 28800.freeze # 8 hours
 MAX_CATEGORIES = 5.freeze
 
 set :server, :thin

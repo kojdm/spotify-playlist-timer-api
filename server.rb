@@ -2,6 +2,7 @@ require "dotenv/load"
 require_relative "classes/spotify_api"
 require_relative "classes/api_objects"
 require_relative "classes/spoopi"
+require_relative "classes/spoopi_tracker"
 
 CLIENT_ID = ENV["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = ENV["SPOTIFY_CLIENT_SECRET"]
@@ -115,6 +116,13 @@ post "/create_playlist" do
 
   split_track_uris = track_uris.each_slice(100).to_a
   split_track_uris.each { |track_uris| new_playlist.add_tracks!(track_uris) }
+
+  SpoopiTracker.add_stat(
+    category_ids.join("|"),
+    country_code,
+    duration,
+    track_uris.count
+  )
 
   {
     new_playlist: new_playlist.json_friendly

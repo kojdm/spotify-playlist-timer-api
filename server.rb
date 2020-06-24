@@ -88,18 +88,19 @@ end
 
 post "/create_playlist" do
   params = JSON.parse(request.body.read)
-  begone! unless (params.keys - ["access_token", "track_uris", "pl_name", "category_ids"]).empty? && !params.empty?
+  begone! unless (params.keys - ["access_token", "track_uris", "pl_name", "category_ids", "seconds"]).empty? && !params.empty?
 
   access_token = params["access_token"]
   track_uris = params["track_uris"].split(",")
   pl_name = params["pl_name"]
   category_ids = params["category_ids"].split(",")
+  duration = params["seconds"].to_i
 
   api = SpotifyApi.new(access_token)
-  user_id = api.get("/me")["id"]
+  user = api.get("/me")
 
   pl_obj = api.post(
-    "/users/#{user_id}/playlists",
+    "/users/#{user["id"]}/playlists",
     body: {
       name: pl_name,
       description: "Created with Spoopi - Spotify Playlist Timer. [cats: #{category_ids.join(", ")}]",
@@ -119,7 +120,7 @@ post "/create_playlist" do
 
   SpoopiTracker.add_stat(
     category_ids.join("|"),
-    country_code,
+    user["country"],
     duration,
     track_uris.count
   )

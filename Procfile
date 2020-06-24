@@ -1,1 +1,1 @@
-web: bundle exec thin -t 60 start --threaded -R config.ru -e $RACK_ENV -p ${PORT:-5000}
+web: bundle exec thin start --threaded -R config.ru -e $RACK_ENV -p ${PORT:-5000}

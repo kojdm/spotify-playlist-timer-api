@@ -78,12 +78,12 @@ class Playlist < ApiObject
     res = @api.get("/playlists/#{@id}/tracks?limit=#{limit}&offset=#{offset}")
 
     tracks = if res["items"].empty?
-                  new_offset = res["total"] > limit ? rand(0..res["total"] - limit) : 0
-                  new_res = @api.get("/playlists/#{@id}/tracks?limit=#{limit}&offset=#{new_offset}")
-                  new_res["items"]
-                else
-                  res["items"]
-                end
+               new_offset = res["total"] > limit ? rand(0..res["total"] - limit) : 0
+               new_res = @api.get("/playlists/#{@id}/tracks?limit=#{limit}&offset=#{new_offset}")
+               new_res["items"]
+             else
+               res["items"]
+             end
 
     @tracks = tracks.filter_map do |tr|
       tr = tr["track"]

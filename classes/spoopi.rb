@@ -21,12 +21,13 @@ class Spoopi
   def generate_tracks!
     # master_hash contains all tracks for each @category_id. hash pattern is:
     # { category_id => { track_id1 => Track1, track_id2 => Track2, ... } }
-    master_hash = @category_ids.each_with_object({}) do |cat_id, h|
-      h[cat_id] = {} if h[cat_id].nil?
+    master_hash = {}
+    Parallel.each(@category_ids, in_threads: @category_ids.count) do |cat_id|
+      master_hash[cat_id] = {} if master_hash[cat_id].nil?
 
       category = Category.new(id: cat_id, api: @api)
       category.playlists(@country_code).flat_map(&:tracks).each do |tr|
-        h[cat_id][tr.id] = tr
+        master_hash[cat_id][tr.id] = tr
       end
     end
 
@@ -34,7 +35,8 @@ class Spoopi
     # for this request. track_ids are accessible by track_duration. hash pattern is:
     # {
     #   category_id => {
-    #     track_duration => [ track_id1, track_id2, ... ]
+    #     track_duration => [ track_id1, track_id2, ... ],
+    #     all_durations => [ 180, 180, ... ]
     #   },
     #   totals => {
     #     category_id => total_duration

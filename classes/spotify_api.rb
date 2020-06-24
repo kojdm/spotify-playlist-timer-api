@@ -4,7 +4,14 @@ class SpotifyApi
   end
 
   def get(endpoint)
-    HTTParty.get(SPOTIFY_API_URL + endpoint, headers: headers)
+    res = HTTParty.get(SPOTIFY_API_URL + endpoint, headers: headers)
+
+    if res.code == 429
+      sleep(res.headers["retry-after"].to_i + 1)
+      res = HTTParty.get(SPOTIFY_API_URL + endpoint, headers: headers)
+    end
+
+    res
   end
 
   def post(endpoint, body:)

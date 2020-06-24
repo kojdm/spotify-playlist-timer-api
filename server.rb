@@ -68,7 +68,7 @@ get "/generate_tracks" do
   category_ids = params["category_ids"].split(",")
   country_code = params["country_code"]
 
-  begone! unless desired_duration.between?(MIN_DURATION, MAX_DURATION) ||
+  begone! unless desired_duration.between?(MIN_DURATION, MAX_DURATION) &&
     category_ids.count.between?(1, MAX_CATEGORIES)
 
   api = SpotifyApi.new(@spoopi_token)

@@ -118,20 +118,9 @@ post "/create_playlist" do
   split_track_uris = track_uris.each_slice(100).to_a
   split_track_uris.each { |track_uris| new_playlist.add_tracks!(track_uris) }
 
-  SpoopiTracker.add_stat(
-    category_ids.join("|"),
-    user["country"],
-    duration,
-    track_uris.count
-  )
-
   {
     new_playlist: new_playlist.json_friendly
   }.to_json
-end
-
-get "/spoopi_stats" do
-  SpoopiTracker.get_stats.to_json
 end
 
 private

@@ -8,3 +8,6 @@ gem "parallel"
 gem "dotenv"
 gem "pry"
 
+# for spoopi stats tracking
+gem "google_drive"
+

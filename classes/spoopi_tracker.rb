@@ -1,9 +1,14 @@
 class SpoopiTracker
   class << self
     def add_stat(category_ids, country_code, duration, track_count)
-      CSV.open("spoopi_stats.csv", "ab") do |csv|
-        csv << [category_ids, country_code, duration, track_count]
-      end
+      gcs_io = StringIO.new(GOOGLE_CLIENT_SECRET)
+      session = GoogleDrive::Session.from_service_account_key(gcs_io)
+
+      spreadsheet = session.spreadsheet_by_title("Spoopi Stats Tracker")
+      worksheet = spreadsheet.worksheets.first
+
+      worksheet.insert_rows(worksheet.num_rows + 1, [[ category_ids, country_code, duration, track_count ]])
+      worksheet.save
     end
 
     def get_stats
@@ -32,6 +37,19 @@ class SpoopiTracker
       end
 
       stats_hash
+    end
+
+    private
+
+    def random_string(length)
+      text = ""
+      chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+      length.times do |i|
+        text += chars[rand(chars.length)]
+      end
+
+      text
     end
   end
 end

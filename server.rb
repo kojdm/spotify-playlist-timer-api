@@ -8,6 +8,7 @@ CLIENT_ID = ENV["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = ENV["SPOTIFY_CLIENT_SECRET"]
 SPOOPI_URL = ENV["SPOOPI_URL"]
 CORS_URL = ENV["CORS_URL"]
+GOOGLE_CLIENT_SECRET = ENV["GOOGLE_CLIENT_SECRET"]
 
 AUTH_SCOPE = %w(
   user-read-private
@@ -118,23 +119,19 @@ post "/create_playlist" do
   split_track_uris = track_uris.each_slice(100).to_a
   split_track_uris.each { |track_uris| new_playlist.add_tracks!(track_uris) }
 
+  SpoopiTracker.add_stat(
+    category_ids.join("|"),
+    user["country"],
+    duration,
+    track_uris.count
+  )
+
   {
     new_playlist: new_playlist.json_friendly
   }.to_json
 end
 
 private
-
-def random_string(length)
-  text = ""
-  chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-
-  length.times do |i|
-    text += chars[rand(chars.length)]
-  end
-
-  text
-end
 
 def begone!
   return halt 400, "begone!"

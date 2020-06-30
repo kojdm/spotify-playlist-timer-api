@@ -1,4 +1,5 @@
 require "dotenv/load"
+require "date"
 require_relative "classes/spotify_api"
 require_relative "classes/api_objects"
 require_relative "classes/spoopi"
@@ -119,7 +120,9 @@ post "/create_playlist" do
   split_track_uris = track_uris.each_slice(100).to_a
   split_track_uris.each { |track_uris| new_playlist.add_tracks!(track_uris) }
 
+  current_datetime = DateTime.now.strftime("%d/%m/%Y %H:%M")
   SpoopiTracker.add_stat(
+    current_datetime,
     category_ids.join("|"),
     user["country"],
     duration,

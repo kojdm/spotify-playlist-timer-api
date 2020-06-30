@@ -9,7 +9,6 @@ CLIENT_ID = ENV["SPOTIFY_CLIENT_ID"]
 CLIENT_SECRET = ENV["SPOTIFY_CLIENT_SECRET"]
 SPOOPI_URL = ENV["SPOOPI_URL"]
 CORS_URL = ENV["CORS_URL"]
-GOOGLE_CLIENT_SECRET = ENV["GOOGLE_CLIENT_SECRET"]
 
 AUTH_SCOPE = %w(
   user-read-private
@@ -121,7 +120,7 @@ post "/create_playlist" do
   split_track_uris.each { |track_uris| new_playlist.add_tracks!(track_uris) }
 
   current_datetime = DateTime.now.strftime("%d/%m/%Y %H:%M")
-  SpoopiTracker.add_stat(
+  SpoopiTrackerWorker.perform_async(
     current_datetime,
     category_ids.join("|"),
     user["country"],

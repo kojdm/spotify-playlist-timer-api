@@ -1,3 +1,16 @@
+require "dotenv/load"
+require "google_drive"
+
+GOOGLE_CLIENT_SECRET = ENV["GOOGLE_CLIENT_SECRET"]
+
+class SpoopiTrackerWorker
+  include Sidekiq::Worker
+
+  def perform(*args)
+    SpoopiTracker.add_stat(*args)
+  end
+end
+
 class SpoopiTracker
   class << self
     def add_stat(date, category_ids, country_code, duration, track_count)

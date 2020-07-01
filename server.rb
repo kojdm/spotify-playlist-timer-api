@@ -89,13 +89,15 @@ end
 
 post "/create_playlist" do
   params = JSON.parse(request.body.read)
-  begone! unless (params.keys - ["access_token", "track_uris", "pl_name", "category_ids", "seconds"]).empty? && !params.empty?
+  param_keys = ["access_token", "track_uris", "pl_name", "category_ids", "seconds", "actual_duration"]
+  begone! unless (params.keys - param_keys).empty? && !params.empty?
 
   access_token = params["access_token"]
   track_uris = params["track_uris"].split(",")
   pl_name = params["pl_name"]
   category_ids = params["category_ids"].split(",")
-  duration = params["seconds"].to_i
+  desired_duration = params["seconds"].to_i
+  actual_duration = params["actual_duration"].to_i
 
   api = SpotifyApi.new(access_token)
   user = api.get("/me")
@@ -124,7 +126,8 @@ post "/create_playlist" do
     current_datetime,
     category_ids.join("|"),
     user["country"],
-    duration,
+    desired_duration,
+    actual_duration,
     track_uris.count
   )
 

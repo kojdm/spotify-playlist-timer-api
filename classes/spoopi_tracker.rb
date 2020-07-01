@@ -13,7 +13,7 @@ end
 
 class SpoopiTracker
   class << self
-    def add_stat(date, category_ids, country_code, duration, track_count)
+    def add_stat(date, category_ids, country_code, desired_duration, actual_duration, track_count)
       gcs_io = StringIO.new(GOOGLE_CLIENT_SECRET)
       session = GoogleDrive::Session.from_service_account_key(gcs_io)
 

@@ -32,7 +32,12 @@ MAX_CATEGORIES = 5.freeze
 set :server, :thin
 
 before do
-  headers("Access-Control-Allow-Origin" => CORS_URL)
+  if request.path_info == "/categories"
+    headers("Access-Control-Allow-Origin" => "*")
+  else
+    headers("Access-Control-Allow-Origin" => CORS_URL)
+  end
+
   init_spoopi_token!
 end
 

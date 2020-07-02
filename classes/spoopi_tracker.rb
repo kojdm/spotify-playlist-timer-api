@@ -20,7 +20,9 @@ class SpoopiTracker
       spreadsheet = session.spreadsheet_by_title("Spoopi Stats Tracker")
       worksheet = spreadsheet.worksheets.first
 
-      worksheet.insert_rows(worksheet.num_rows + 1, [[ date, category_ids, country_code, duration, track_count ]])
+      worksheet.insert_rows(worksheet.num_rows + 1, [[
+        date, category_ids, country_code, desired_duration, actual_duration, track_count
+      ]])
       worksheet.save
     end
   end

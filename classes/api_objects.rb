@@ -1,5 +1,5 @@
 class ApiObject
-  attr_accessor :id, :name, :artists, :image_url, :duration, :uri, :spotify_url, :api
+  attr_accessor :id, :name, :artists, :image_url, :duration, :duration_ms, :uri, :spotify_url, :api
 
   def initialize(args)
     args.each { |k, v| send("#{k}=", v) }
@@ -94,7 +94,8 @@ class Playlist < ApiObject
         name: tr["name"],
         artists: tr.dig("album", "artists")&.map { |a| a&.dig("name")},
         image_url: tr.dig("album", "images")&.first&.dig("url"),
-        duration: tr["duration_ms"] / 1000, # ms to seconds
+        duration: (tr["duration_ms"] / 1000.0).round, # ms to seconds
+        duration_ms: tr["duration_ms"], # actual duration
         uri: tr["uri"],
         api: @api
       )
